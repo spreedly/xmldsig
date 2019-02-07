@@ -1,6 +1,6 @@
 module Xmldsig
   class SignedDocument
-    attr_accessor :document, :id_attr, :force, :referenced_documents
+    attr_accessor :document, :id_attr, :force, :referenced_documents, :base64_strict_encode
 
     def initialize(document, options = {})
       @document = if document.kind_of?(Nokogiri::XML::Document)
@@ -11,6 +11,7 @@ module Xmldsig
       @id_attr  = options[:id_attr] if options[:id_attr]
       @force    = options[:force]
       @referenced_documents = options.fetch(:referenced_documents, {})
+      @base64_strict_encode = options[:base64_strict_encode]
     end
 
     def validate(certificate = nil, schema = nil, &block)
@@ -36,7 +37,7 @@ module Xmldsig
     def signatures
       document.xpath("//ds:Signature", NAMESPACES).
           sort { |left, right| left.ancestors.size <=> right.ancestors.size }.
-          collect { |node| Signature.new(node, @id_attr, referenced_documents) } || []
+          collect { |node| Signature.new(node, @id_attr, referenced_documents, @base64_strict_encode) } || []
     end
   end
 end

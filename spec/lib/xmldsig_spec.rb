@@ -108,4 +108,52 @@ describe Xmldsig do
       end
     end
   end
+
+  describe "Allows specifying strict base64 encoding" do
+    context "an unsigned document with strict encoding" do
+      let(:unsigned_xml) { File.read("spec/fixtures/unsigned.xml") }
+      let(:unsigned_document) { Xmldsig::SignedDocument.new(unsigned_xml, base64_strict_encode: true) }
+      let(:signed_document) { unsigned_document.sign(private_key) }
+
+      it "should be signable and validateable" do
+        expect(Xmldsig::SignedDocument.new(signed_document, base64_strict_encode: true).validate(certificate)).to eq(true)
+      end
+
+      it 'should have a signature element' do
+        expect(Xmldsig::SignedDocument.new(signed_document, base64_strict_encode: true).signatures.count).to eq(1)
+      end
+    end
+
+    context "a signed document with strict encoding" do
+      let(:signed_xml) { File.read("spec/fixtures/signed.xml") }
+      let(:signed_document) { Xmldsig::SignedDocument.new(signed_xml, base64_strict_encode: true) }
+
+      it "should be validateable" do
+        expect(signed_document.validate(certificate)).to eq(true)
+      end
+    end
+
+    context "an unsigned document with strict encoding off" do
+      let(:unsigned_xml) { File.read("spec/fixtures/unsigned.xml") }
+      let(:unsigned_document) { Xmldsig::SignedDocument.new(unsigned_xml, base64_strict_encode: false) }
+      let(:signed_document) { unsigned_document.sign(private_key) }
+
+      it "should be signable and validateable" do
+        expect(Xmldsig::SignedDocument.new(signed_document, base64_strict_encode: false).validate(certificate)).to eq(true)
+      end
+
+      it 'should have a signature element' do
+        expect(Xmldsig::SignedDocument.new(signed_document, base64_strict_encode: false).signatures.count).to eq(1)
+      end
+    end
+
+    context "a signed document with strict encoding off" do
+      let(:signed_xml) { File.read("spec/fixtures/signed.xml") }
+      let(:signed_document) { Xmldsig::SignedDocument.new(signed_xml, base64_strict_encode: true) }
+
+      it "should be validateable" do
+        expect(signed_document.validate(certificate)).to eq(true)
+      end
+    end
+  end
 end

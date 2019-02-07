@@ -2,15 +2,16 @@ module Xmldsig
   class Signature
     attr_accessor :signature
 
-    def initialize(signature, id_attr = nil, referenced_documents = {})
+    def initialize(signature, id_attr = nil, referenced_documents = {}, base64_strict_encode = false)
       @signature = signature
       @id_attr = id_attr
       @referenced_documents = referenced_documents
+      @base64_strict_encode = base64_strict_encode
     end
 
     def references
       @references ||= signature.xpath("descendant::ds:Reference", NAMESPACES).map do |node|
-        Reference.new(node, @id_attr, @referenced_documents)
+        Reference.new(node, @id_attr, @referenced_documents, @base64_strict_encode)
       end
     end
 
@@ -98,8 +99,8 @@ module Xmldsig
     end
 
     def signature_value=(signature_value)
-      signature.at_xpath("descendant::ds:SignatureValue", NAMESPACES).content =
-          Base64.strict_encode64(signature_value).chomp
+      encoded_value = (@base64_strict_encode == true) ? Base64.strict_encode64(signature_value) : Base64.encode64(signature_value)
+      signature.at_xpath("descendant::ds:SignatureValue", NAMESPACES).content = encoded_value.chomp
     end
 
     def validate_schema(schema)

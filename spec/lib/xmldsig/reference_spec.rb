@@ -3,6 +3,7 @@ require "spec_helper"
 describe Xmldsig::Reference do
   let(:document) { Nokogiri::XML::Document.parse File.read("spec/fixtures/signed.xml") }
   let(:reference) { Xmldsig::Reference.new(document.at_xpath('//ds:Reference', Xmldsig::NAMESPACES)) }
+  let(:reference_with_strict_encoding) { Xmldsig::Reference.new(document.at_xpath('//ds:Reference', Xmldsig::NAMESPACES), id_attr = nil, referenced_documents = {}, base64_strict_encode: true) }
 
   describe "#digest_value" do
     it "returns the digest value in the xml" do
@@ -22,6 +23,20 @@ describe Xmldsig::Reference do
     it "sets the correct digest value" do
       reference.sign
       expect(reference.digest_value).to eq(Base64.decode64("ftoSYFdze1AWgGHF5N9i9SFKThXkqH2AdyzA3/epbJw="))
+    end
+
+    it "sets the correct digest value when base64 strict encoding is enabled" do
+      reference.sign
+      expect(reference.digest_value).to eq(Base64.decode64("ftoSYFdze1AWgGHF5N9i9SFKThXkqH2AdyzA3/epbJw="))
+    end
+  end
+
+  describe "#sign" do
+    let(:document) { Nokogiri::XML::Document.parse File.read("spec/fixtures/unsigned.xml") }
+
+    it "sets the correct digest value when base64 strict encoding is enabled" do
+      reference_with_strict_encoding.sign
+      expect(reference_with_strict_encoding.digest_value).to eq(Base64.decode64("ftoSYFdze1AWgGHF5N9i9SFKThXkqH2AdyzA3/epbJw="))
     end
   end
 

@@ -75,6 +75,10 @@ end
 # Custom ID attribute
 signed_document = Xmldsig::SignedDocument.new(signed_xml, id_attr: "MyID")
 signed_document.validate(certificate)
+
+# Specify Base64 Strict Encoding of Signature Value and Digest Value
+unsigned_document = Xmldsig::SignedDocument.new(unsigned_xml, base64_strict_encode: true)
+signed_xml = unsigned_document.sign(private_key)
 ```
 
 ## Known issues

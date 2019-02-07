@@ -12,33 +12,59 @@ describe Xmldsig::Signature do
     let(:document) { Nokogiri::XML::Document.parse File.read("spec/fixtures/unsigned.xml") }
     let(:signature_node) { document.at_xpath("//ds:Signature", Xmldsig::NAMESPACES) }
     let(:signature) { Xmldsig::Signature.new(signature_node) }
+    let(:signature_with_strict_encoding) { Xmldsig::Signature.new(signature_node, id_attr = nil, referenced_documents = {}, base64_strict_encode: true) }
 
-    before :each do
-      signature.sign(private_key)
-    end
-
-    it "sets the digest value" do
-      expect(signature.references.first.digest_value).to eq(Base64.decode64("ftoSYFdze1AWgGHF5N9i9SFKThXkqH2AdyzA3/epbJw="))
-    end
-
-    it "sets the signature value" do
-      expect(signature.signature_value).to eq(Base64.decode64("
-        E3yyqsSoxRkhYEuaEtR+SLg85gU5B4a7xUXA+d2Zn6j7F6z73dOd8iYHOusB
-        Ty3C/3ujbmPhHKg8uX9kUE8b+YoOqZt4z9pdxAq44nJEuijwi4doIPpHWirv
-        BnSoP5IoL0DYzGVrgj8udRzfAw5nNeV7wSrBZEn+yrxmUPJoUZc=
-      "))
-    end
-
-    it "accepts a block" do
-      signature.sign do |data, signature_algorithm|
-        expect(signature_algorithm).to eq("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256")
-        private_key.sign(OpenSSL::Digest::SHA256.new, data)
+    describe "base64 strict encode is disabled" do
+      before :each do
+        signature.sign(private_key)
       end
-      expect(signature.signature_value).to eq(Base64.decode64("
-        E3yyqsSoxRkhYEuaEtR+SLg85gU5B4a7xUXA+d2Zn6j7F6z73dOd8iYHOusB
-        Ty3C/3ujbmPhHKg8uX9kUE8b+YoOqZt4z9pdxAq44nJEuijwi4doIPpHWirv
-        BnSoP5IoL0DYzGVrgj8udRzfAw5nNeV7wSrBZEn+yrxmUPJoUZc=
-      "))
+
+      it "sets the digest value" do
+        expect(signature.references.first.digest_value).to eq(Base64.decode64("ftoSYFdze1AWgGHF5N9i9SFKThXkqH2AdyzA3/epbJw="))
+      end
+
+      it "sets the signature value" do
+        expect(signature.signature_value).to eq(Base64.decode64("
+          E3yyqsSoxRkhYEuaEtR+SLg85gU5B4a7xUXA+d2Zn6j7F6z73dOd8iYHOusB
+          Ty3C/3ujbmPhHKg8uX9kUE8b+YoOqZt4z9pdxAq44nJEuijwi4doIPpHWirv
+          BnSoP5IoL0DYzGVrgj8udRzfAw5nNeV7wSrBZEn+yrxmUPJoUZc=
+        "))
+      end
+
+      it "accepts a block" do
+        signature.sign do |data, signature_algorithm|
+          expect(signature_algorithm).to eq("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256")
+          private_key.sign(OpenSSL::Digest::SHA256.new, data)
+        end
+        expect(signature.signature_value).to eq(Base64.decode64("
+          E3yyqsSoxRkhYEuaEtR+SLg85gU5B4a7xUXA+d2Zn6j7F6z73dOd8iYHOusB
+          Ty3C/3ujbmPhHKg8uX9kUE8b+YoOqZt4z9pdxAq44nJEuijwi4doIPpHWirv
+          BnSoP5IoL0DYzGVrgj8udRzfAw5nNeV7wSrBZEn+yrxmUPJoUZc=
+        "))
+      end
+    end
+    
+    describe "base64 strict encode is enabled" do
+      before :each do
+        signature_with_strict_encoding.sign(private_key)
+      end
+      
+      it "sets the digest value" do
+        expect(signature_with_strict_encoding.references.first.digest_value).to eq(Base64.decode64("ftoSYFdze1AWgGHF5N9i9SFKThXkqH2AdyzA3/epbJw="))
+      end
+
+      it "sets the signature value" do
+        expect(signature_with_strict_encoding.signature_value).to eq(Base64.decode64("E3yyqsSoxRkhYEuaEtR+SLg85gU5B4a7xUXA+d2Zn6j7F6z73dOd8iYHOusBTy3C/3ujbmPhHKg8uX9kUE8b+YoOqZt4z9pdxAq44nJEuijwi4doIPpHWirvBnSoP5IoL0DYzGVrgj8udRzfAw5nNeV7wSrBZEn+yrxmUPJoUZc="))
+      end
+
+      it "accepts a block" do
+        signature_with_strict_encoding.sign do |data, signature_algorithm|
+          expect(signature_algorithm).to eq("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256")
+          private_key.sign(OpenSSL::Digest::SHA256.new, data)
+        end
+        expect(signature_with_strict_encoding.signature_value).to eq(Base64.decode64("E3yyqsSoxRkhYEuaEtR+SLg85gU5B4a7xUXA+d2Zn6j7F6z73dOd8iYHOusBTy3C/3ujbmPhHKg8uX9kUE8b+YoOqZt4z9pdxAq44nJEuijwi4doIPpHWirvBnSoP5IoL0DYzGVrgj8udRzfAw5nNeV7wSrBZEn+yrxmUPJoUZc=
+        "))
+      end
     end
 
     describe "multiple references" do

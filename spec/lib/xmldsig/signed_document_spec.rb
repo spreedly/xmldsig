@@ -127,10 +127,31 @@ describe Xmldsig::SignedDocument do
     end
 
     context 'with inclusive namespaces for the signature' do
+      let(:unsigned_document) { Xmldsig::SignedDocument.new(unsigned_xml, base64_strict_encode: true) }
       let(:unsigned_xml) { File.read("spec/fixtures/unsigned_signature_namespace.xml") }
       let(:signed_xml) { File.read("spec/fixtures/signed_signature_namespace.xml") }
 
       it 'canonicalizes and signs correctly' do
+        expect(unsigned_document.sign(private_key)).to eq(signed_xml)
+      end
+    end
+
+    context 'with base64 strict_encode enabled for the signature' do
+      let(:unsigned_document) { Xmldsig::SignedDocument.new(unsigned_xml, base64_strict_encode: true) }
+      let(:unsigned_xml) { File.read("spec/fixtures/unsigned.xml") }
+      let(:signed_xml) { File.read("spec/fixtures/signed_with_base64_strict_encode_on.xml") }
+
+      it 'returns the signature with line breaks' do
+        expect(unsigned_document.sign(private_key)).to eq(signed_xml)
+      end
+    end
+
+    context 'with base64 strict encode disabled for the signature' do
+      let(:unsigned_document) { Xmldsig::SignedDocument.new(unsigned_xml, base64_strict_encode: false) }
+      let(:unsigned_xml) { File.read("spec/fixtures/unsigned.xml") }
+      let(:signed_xml) { File.read("spec/fixtures/signed.xml") }
+
+      it 'returns the signature without with line breaks' do
         expect(unsigned_document.sign(private_key)).to eq(signed_xml)
       end
     end

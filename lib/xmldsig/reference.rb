@@ -5,11 +5,12 @@ module Xmldsig
     class ReferencedNodeNotFound < Exception;
     end
 
-    def initialize(reference, id_attr = nil, referenced_documents = {})
+    def initialize(reference, id_attr = nil, referenced_documents = {}, base64_strict_encode = false)
       @reference = reference
       @errors    = []
       @id_attr = id_attr
       @referenced_documents = referenced_documents
+      @base64_strict_encode = base64_strict_encode
     end
 
     def document
@@ -83,8 +84,8 @@ module Xmldsig
     end
 
     def digest_value=(digest_value)
-      reference.at_xpath("descendant::ds:DigestValue", NAMESPACES).content =
-          Base64.strict_encode64(digest_value).chomp
+      encoded_value = (@base64_strict_encode == true) ? Base64.strict_encode64(digest_value) : Base64.encode64(digest_value)
+      reference.at_xpath("descendant::ds:DigestValue", NAMESPACES).content = encoded_value.chomp
     end
 
     def transforms
