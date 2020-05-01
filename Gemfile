@@ -7,6 +7,6 @@ group :test, :development do
   gem 'simplecov'
   gem 'rspec'
   gem 'guard-rspec', platform: :mri
-  gem 'rb-fsevent', '~> 0.9.1'
+  gem 'rb-fsevent', '~> 0.10.4'
   gem 'rake'
 end
